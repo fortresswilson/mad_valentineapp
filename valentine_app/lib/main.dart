@@ -23,6 +23,7 @@ class ValentineHome extends StatefulWidget {
   State<ValentineHome> createState() => _ValentineHomeState();
 }
 
+<<<<<<< HEAD
 class _ValentineHomeState extends State<ValentineHome>
     with SingleTickerProviderStateMixin {
   final List<String> emojiOptions = ['Sweet Heart', 'Party Heart'];
@@ -69,6 +70,11 @@ class _ValentineHomeState extends State<ValentineHome>
 
     setState(() {});
   }
+=======
+class _ValentineHomeState extends State<ValentineHome> {
+  final List<String> emojiOptions = ['Sweet Heart', 'Party Heart'];
+  String selectedEmoji = 'Sweet Heart';
+>>>>>>> b4d7b26793af46c305fa720f2b00bb9e99476d95
 
   @override
   Widget build(BuildContext context) {
@@ -82,12 +88,17 @@ class _ValentineHomeState extends State<ValentineHome>
             items: emojiOptions
                 .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                 .toList(),
+<<<<<<< HEAD
             onChanged: (value) =>
                 setState(() => selectedEmoji = value ?? selectedEmoji),
+=======
+            onChanged: (value) => setState(() => selectedEmoji = value ?? selectedEmoji),
+>>>>>>> b4d7b26793af46c305fa720f2b00bb9e99476d95
           ),
           const SizedBox(height: 16),
           Expanded(
             child: Center(
+<<<<<<< HEAD
               child: GestureDetector(
                 onTap: () {
                   if (selectedEmoji == 'Sweet Heart') {
@@ -102,6 +113,11 @@ class _ValentineHomeState extends State<ValentineHome>
                     bubbles: _bubbles,
                   ),
                 ),
+=======
+              child: CustomPaint(
+                size: const Size(300, 300),
+                painter: HeartEmojiPainter(type: selectedEmoji),
+>>>>>>> b4d7b26793af46c305fa720f2b00bb9e99476d95
               ),
             ),
           ),
@@ -112,6 +128,7 @@ class _ValentineHomeState extends State<ValentineHome>
 }
 
 class HeartEmojiPainter extends CustomPainter {
+<<<<<<< HEAD
   HeartEmojiPainter({
     required this.type,
     required this.animation,
@@ -121,10 +138,15 @@ class HeartEmojiPainter extends CustomPainter {
   final String type;
   final Animation<double> animation;
   final List<_HeartBubble> bubbles;
+=======
+  HeartEmojiPainter({required this.type});
+  final String type;
+>>>>>>> b4d7b26793af46c305fa720f2b00bb9e99476d95
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
+<<<<<<< HEAD
     final t = animation.value;
     final s = size.width / 300.0;
 
@@ -168,10 +190,40 @@ class HeartEmojiPainter extends CustomPainter {
 
     // Heart gradient fill
     final heartFill = Paint()
+=======
+
+    final rect = Offset.zero & size;
+    final bgPaint = Paint()
+      ..shader = const RadialGradient(
+        center: Alignment(0.0, -0.3),
+        radius: 1.0,
+        colors: [
+          Color(0xFFFFF1F7),
+          Color(0xFFFFB3CC),
+          Color(0xFFFF3D7F),
+        ],
+        stops: [0.0, 0.6, 1.0],
+      ).createShader(rect);
+    canvas.drawRect(rect, bgPaint);
+
+    // Heart base path
+    final heartPath = Path()
+      ..moveTo(center.dx, center.dy + 60)
+      ..cubicTo(center.dx + 110, center.dy - 10, center.dx + 60, center.dy - 120,
+          center.dx, center.dy - 40)
+      ..cubicTo(center.dx - 60, center.dy - 120, center.dx - 110, center.dy - 10,
+          center.dx, center.dy + 60)
+      ..close();
+
+    final heartRect = Rect.fromCenter(center: center, width: 260, height: 260);
+    final heartPaint = Paint()
+      ..style = PaintingStyle.fill
+>>>>>>> b4d7b26793af46c305fa720f2b00bb9e99476d95
       ..shader = LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: type == 'Party Heart'
+<<<<<<< HEAD
             ? const [Color(0xFFFFB3C7), Color(0xFFFF4D88), Color(0xFFE91E63)]
             : const [Color(0xFFFF5A7A), Color(0xFFE91E63), Color(0xFFB0003A)],
       ).createShader(Rect.fromCenter(
@@ -205,10 +257,32 @@ class HeartEmojiPainter extends CustomPainter {
           radius: (type == 'Party Heart' ? 34 : 26) * s),
       0,
       math.pi,
+=======
+            ? const [Color(0xFFFFC1D6), Color(0xFFFF3D7F)]
+            : const [Color(0xFFFF2D55), Color(0xFFB0003A)],
+      ).createShader(heartRect);
+
+    canvas.drawPath(heartPath, heartPaint);
+
+    // Face features
+    final eyePaint = Paint()..color = Colors.white;
+    canvas.drawCircle(Offset(center.dx - 30, center.dy - 10), 10, eyePaint);
+    canvas.drawCircle(Offset(center.dx + 30, center.dy - 10), 10, eyePaint);
+
+    final mouthPaint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4;
+    canvas.drawArc(
+      Rect.fromCircle(center: Offset(center.dx, center.dy + 20), radius: 30),
+      0,
+      3.14,
+>>>>>>> b4d7b26793af46c305fa720f2b00bb9e99476d95
       false,
       mouthPaint,
     );
 
+<<<<<<< HEAD
     // Sweet blush
     if (type == 'Sweet Heart') {
       final blush = Paint()..color = const Color(0x55FFB6C1);
@@ -321,3 +395,21 @@ class _HeartBubble {
   final double size;
   final double driftX;
 }
+=======
+    // Party hat
+    if (type == 'Party Heart') {
+      final hatPaint = Paint()..color = const Color(0xFFFFD54F);
+      final hatPath = Path()
+        ..moveTo(center.dx, center.dy - 110)
+        ..lineTo(center.dx - 40, center.dy - 40)
+        ..lineTo(center.dx + 40, center.dy - 40)
+        ..close();
+      canvas.drawPath(hatPath, hatPaint);
+    }
+  }
+
+
+  @override
+  bool shouldRepaint(covariant HeartEmojiPainter oldDelegate) => oldDelegate.type != type;
+}
+>>>>>>> b4d7b26793af46c305fa720f2b00bb9e99476d95
