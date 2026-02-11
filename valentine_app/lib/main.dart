@@ -1,122 +1,323 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(const ValentineApp());
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class ValentineApp extends StatelessWidget {
+  const ValentineApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      debugShowCheckedModeBanner: false,
+      home: const ValentineHome(),
+      theme: ThemeData(useMaterial3: true),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class ValentineHome extends StatefulWidget {
+  const ValentineHome({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<ValentineHome> createState() => _ValentineHomeState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _ValentineHomeState extends State<ValentineHome>
+    with SingleTickerProviderStateMixin {
+  final List<String> emojiOptions = ['Sweet Heart', 'Party Heart'];
+  String selectedEmoji = 'Sweet Heart';
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  late final AnimationController _controller;
+  final List<_HeartBubble> _bubbles = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )
+      ..addListener(() {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        _bubbles.removeWhere((b) => now - b.birthMs > 1200);
+      })
+      ..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _spawnBubbles() {
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    for (int i = 0; i < 8; i++) {
+      _bubbles.add(
+        _HeartBubble(
+          birthMs: now,
+          dx: (i % 4 - 1.5) * 18.0,
+          dy: (i ~/ 4 - 0.5) * 10.0,
+          size: 10.0 + (i % 4) * 4.0,
+          driftX: (i.isEven ? -1 : 1) * (6.0 + i.toDouble()),
+        ),
+      );
+    }
+
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      appBar: AppBar(title: const Text('Cupid\'s Canvas')),
+      body: Column(
+        children: [
+          const SizedBox(height: 16),
+          DropdownButton<String>(
+            value: selectedEmoji,
+            items: emojiOptions
+                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                .toList(),
+            onChanged: (value) =>
+                setState(() => selectedEmoji = value ?? selectedEmoji),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: Center(
+              child: GestureDetector(
+                onTap: () {
+                  if (selectedEmoji == 'Sweet Heart') {
+                    _spawnBubbles();
+                  }
+                },
+                child: CustomPaint(
+                  size: const Size(300, 300),
+                  painter: HeartEmojiPainter(
+                    type: selectedEmoji,
+                    animation: _controller,
+                    bubbles: _bubbles,
+                  ),
+                ),
+              ),
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+          ),
+        ],
       ),
     );
   }
+}
+
+class HeartEmojiPainter extends CustomPainter {
+  HeartEmojiPainter({
+    required this.type,
+    required this.animation,
+    required this.bubbles,
+  }) : super(repaint: animation);
+
+  final String type;
+  final Animation<double> animation;
+  final List<_HeartBubble> bubbles;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final t = animation.value;
+    final s = size.width / 300.0;
+
+    // Background radial gradient
+    final bgPaint = Paint()
+      ..shader = const RadialGradient(
+        center: Alignment(0, -0.2),
+        radius: 1.2,
+        colors: [
+          Color(0xFFFFE3EC),
+          Color(0xFFFF6B8A),
+          Color(0xFFD81B60),
+        ],
+      ).createShader(Offset.zero & size);
+    canvas.drawRect(Offset.zero & size, bgPaint);
+
+    // Heart path
+    final heartPath = Path()
+      ..moveTo(center.dx, center.dy + 60 * s)
+      ..cubicTo(center.dx + 110 * s, center.dy - 10 * s,
+          center.dx + 60 * s, center.dy - 120 * s,
+          center.dx, center.dy - 40 * s)
+      ..cubicTo(center.dx - 60 * s, center.dy - 120 * s,
+          center.dx - 110 * s, center.dy - 10 * s,
+          center.dx, center.dy + 60 * s)
+      ..close();
+
+    // Glow trail
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.scale(1.08);
+    canvas.translate(-center.dx, -center.dy);
+
+    final auraPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10 * s
+      ..color = const Color(0x80FFFFFF)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+    canvas.drawPath(heartPath, auraPaint);
+    canvas.restore();
+
+    // Heart gradient fill
+    final heartFill = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: type == 'Party Heart'
+            ? const [Color(0xFFFFB3C7), Color(0xFFFF4D88), Color(0xFFE91E63)]
+            : const [Color(0xFFFF5A7A), Color(0xFFE91E63), Color(0xFFB0003A)],
+      ).createShader(Rect.fromCenter(
+        center: center,
+        width: 240 * s,
+        height: 240 * s,
+      ));
+    canvas.drawPath(heartPath, heartFill);
+
+    // Eyes
+    final eyeWhite = Paint()..color = Colors.white;
+    final eyeBlack = Paint()..color = Colors.black;
+    canvas.drawCircle(Offset(center.dx - 30 * s, center.dy - 10 * s),
+        12 * s, eyeWhite);
+    canvas.drawCircle(Offset(center.dx + 30 * s, center.dy - 10 * s),
+        12 * s, eyeWhite);
+    canvas.drawCircle(Offset(center.dx - 30 * s, center.dy - 10 * s),
+        5 * s, eyeBlack);
+    canvas.drawCircle(Offset(center.dx + 30 * s, center.dy - 10 * s),
+        5 * s, eyeBlack);
+
+    // Smile
+    final mouthPaint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = (type == 'Party Heart' ? 5 : 4) * s;
+
+    canvas.drawArc(
+      Rect.fromCircle(
+          center: Offset(center.dx, center.dy + 20 * s),
+          radius: (type == 'Party Heart' ? 34 : 26) * s),
+      0,
+      math.pi,
+      false,
+      mouthPaint,
+    );
+
+    // Sweet blush
+    if (type == 'Sweet Heart') {
+      final blush = Paint()..color = const Color(0x55FFB6C1);
+      canvas.drawCircle(
+          Offset(center.dx - 55 * s, center.dy + 8 * s), 10 * s, blush);
+      canvas.drawCircle(
+          Offset(center.dx + 55 * s, center.dy + 8 * s), 10 * s, blush);
+    }
+
+    // Party hat + confetti
+    if (type == 'Party Heart') {
+      _drawConfetti(canvas, center, s);
+    }
+
+    // Sparkles
+    _drawSparkles(canvas, center, s, t);
+
+    // Heart bubbles
+    if (type == 'Sweet Heart') {
+      _drawBubbles(canvas, center, s);
+    }
+  }
+
+  void _drawConfetti(Canvas canvas, Offset c, double s) {
+    final colors = [
+      Colors.yellow,
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple
+    ];
+
+    for (int i = 0; i < 20; i++) {
+      final angle = (i / 20) * math.pi * 2;
+      final p = Offset(
+        c.dx + math.cos(angle) * 130 * s,
+        c.dy + math.sin(angle) * 130 * s,
+      );
+
+      final paint = Paint()..color = colors[i % colors.length];
+      canvas.drawCircle(p, 5 * s, paint);
+    }
+  }
+
+  void _drawSparkles(Canvas canvas, Offset c, double s, double t) {
+  for (int i = 0; i < 8; i++) {
+    final angle = (i / 8) * math.pi * 2;
+    final p = Offset(
+      c.dx + math.cos(angle) * 150 * s,
+      c.dy + math.sin(angle) * 150 * s,
+    );
+
+    // FIXED: clamp opacity to 0..1 so it never becomes negative
+    final rawOpacity = 0.4 + 0.6 * math.sin(t * math.pi * 2);
+    final opacity = rawOpacity.clamp(0.0, 1.0);
+
+    final sparkle = Paint()
+      ..color = Colors.white.withOpacity(opacity)
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawLine(
+      Offset(p.dx - 8 * s, p.dy),
+      Offset(p.dx + 8 * s, p.dy),
+      sparkle,
+    );
+    canvas.drawLine(
+      Offset(p.dx, p.dy - 8 * s),
+      Offset(p.dx, p.dy + 8 * s),
+      sparkle,
+    );
+  }
+}
+
+  void _drawBubbles(Canvas canvas, Offset center, double s) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    for (final b in bubbles) {
+      final age = (now - b.birthMs) / 1200;
+      final opacity = (1 - age).clamp(0.0, 1.0);
+
+      final paint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = Colors.white.withOpacity(opacity);
+
+      final x = center.dx + b.dx + b.driftX * age;
+      final y = center.dy - 100 * age;
+
+      canvas.drawCircle(Offset(x, y), b.size, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class _HeartBubble {
+  _HeartBubble({
+    required this.birthMs,
+    required this.dx,
+    required this.dy,
+    required this.size,
+    required this.driftX,
+  });
+
+  final int birthMs;
+  final double dx;
+  final double dy;
+  final double size;
+  final double driftX;
 }
